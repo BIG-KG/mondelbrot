@@ -7,6 +7,6 @@
 
 
 Коэффиценты a и b рассчитываются из метода наименьших квадратов:
-$a = \frac{n \sum\limits_{i=1}^n x_i y_i - \left( \sum\limits_{i=1}^n x_i \right) \left( \sum\limits_{i=1}^n y_i \right)}{n \sum\limits_{i=1}^n x_i^2 - \left( \sum\limits_{i=1}^n x_i }$
+$a = \frac{n \sum\limits_{i=1}^n x_i y_i - \left( \sum\limits_{i=1}^n x_i \right) \left( \sum\limits_{i=1}^n y_i \right)}{n \sum\limits_{i=1}^n x_i^2 - \left( \sum\limits_{i=1}^n x_i \right)^2}$
 
 Получаем $a_{base} = 0.0289$, $a_{SIMD} = 0.0107$. Итоговое ускорение $S = \frac{a_{base}} {a_{SIMD}} = 2.7$
