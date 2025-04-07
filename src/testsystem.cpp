@@ -16,8 +16,6 @@ float save_result(float *data, int size, char *file_name, float AVG_N, float AVG
         return -1;
     }
     
-    fprintf(outputfile, "%f %f\n", AVG_N, AVG_T);
-
     for(int i = 0; i < size; i ++)
     {
         fprintf(outputfile, "%d %f\n", i + 1,data[i]);
