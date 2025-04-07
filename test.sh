@@ -1,1 +1,0 @@
-g++ mondelbrot_Base.cpp testsystem.cpp -lSDL2 -o0 -o mondelbrot_Base

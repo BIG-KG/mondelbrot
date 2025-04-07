@@ -7,6 +7,7 @@
 #include <SDL2/SDL.h>
 
 #include "testsystem.h"
+#include "mondelbrot.h"
 
 #define MEASURE_TIME
 
@@ -16,11 +17,7 @@ const int repeats_to_set = 50;
 const int num_of_frames = 100;
 const float max_quadr_Range = 10.0;
 
-const __m128i _mm_true  = _mm_set1_epi32(1);
-const __m128i _mm_false = _mm_set1_epi32(0);
-
-void redraw_Screen(SDL_Renderer *renderer, int *screen, int x_size, int y_size);
-
+const __m128i __m_true = _mm_set1_epi32(1);
 
 __m128 convert_coord(__m128i screen_coord, __m128 zoom, __m128 delta, __m128i half_size)
 {   
@@ -89,7 +86,7 @@ __m128i calculate_pixel_repeats( __m128i x_screen, __m128i y_screen, __m128 x_ce
         x = _mm_add_ps(_mm_sub_ps(x2, y2), x_start);
 
         r = _mm_add_ps(x2, y2);;
-        is_inside = _mm_srli_epi32(_mm_castps_si128(_mm_cmplt_ps(r, _mm_set1_ps(max_quadr_Range))), 31);
+        is_inside = _mm_and_si128(_mm_castps_si128(_mm_cmplt_ps(r, _mm_set1_ps(max_quadr_Range))), __m_true);
         repeats   = _mm_add_epi32(repeats, is_inside);
 
         x2 = _mm_mul_ps(x, x);
@@ -105,7 +102,7 @@ __m128i calculate_pixel_repeats( __m128i x_screen, __m128i y_screen, __m128 x_ce
     return repeats;        
 }
 
-int main()
+float intr_mondelbrot(int mode)
 {
     float x_center = 0;
     float y_center = 0;
@@ -113,8 +110,6 @@ int main()
     int repeats[4] = {};
     __m128i x;
     __m128i y;
-
-    #ifndef MEASURE_TIME
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         printf("Error SDL: %s\n", SDL_GetError());
@@ -134,20 +129,31 @@ int main()
         -1,                           
         SDL_RENDERER_ACCELERATED      
     );
-    #endif
 
-    #ifdef MEASURE_TIME
     float *times = (float *)_mm_malloc(sizeof(float) * num_of_frames, 32);
+    if (times == NULL)
+    {
+        printf("Error in memory alloc1\n");
+        return 1;
+    }
     clock_t start = clock();
-    #endif
 
 
     int *screen = (int *)_mm_malloc(sizeof(int) * x_size * y_size, 32);
+    if (screen == NULL)
+    {
+        printf("Error in memory alloc2\n");
+        return 1;
+    }
+
 
     __m128 x_center_mm = _mm_set1_ps(x_center);
     __m128 y_center_mm = _mm_set1_ps(y_center);
     __m128i x_half_size = _mm_set1_epi32(x_size/2);
     __m128i y_half_size = _mm_set1_epi32(y_size/2);
+
+    float AVG_N = (num_of_frames / 2) + 1;
+    float AVG_T = 0;
 
     for(int i = 0; i < num_of_frames; i++)
     {
@@ -162,38 +168,24 @@ int main()
             }
         }
 
-        #ifdef MEASURE_TIME
-        clock_t current = clock();
-        times[i] = (float)(current - start) / CLOCKS_PER_SEC;
-        #endif
+        if(mode != 1)
+        {
+            clock_t current = clock();
+            times[i] = (float)(current - start) / CLOCKS_PER_SEC;
+            AVG_T += times[i]/(float)num_of_frames;
+        }
 
-        #ifndef MEASURE_TIME
-        printf("current frame %d\n", i);
-        redraw_Screen(renderer, (int *)&screen, x_size, y_size);
-        #endif
+        if(mode == 1)
+        {
+            printf("current frame %d\n", i);
+            redraw_Screen(renderer, screen, x_size, y_size);
+        }
     }  
 
-    #ifdef MEASURE_TIME
-    save_result(times, num_of_frames, "./results/inctr_results.txt");
-    #endif
+    if(mode != 1)
+    {
+        save_result(times, num_of_frames, "./results/inctr_results.txt", AVG_N, AVG_T);
+    }
 
     return 0;
-}
-
-void redraw_Screen(SDL_Renderer *renderer, int *screen, int x_size, int y_size)
-{
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-
-    for (size_t y = 0; y < y_size; y++)
-    {
-        for (size_t x = 0; x < x_size; x++)
-        {
-            if (!screen[x + y * x_size])
-                SDL_RenderDrawPoint(renderer, x, y);
-        }
-    }
-    
-    SDL_RenderPresent(renderer);
 }

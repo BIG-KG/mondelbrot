@@ -6,6 +6,8 @@
 #include <SDL2/SDL.h>
 
 #include "testsystem.h"
+#include "mondelbrot.h"
+
 
 #define MEASURE_TIME
 
@@ -14,8 +16,6 @@ const int y_size = 800;
 const int repeats_to_set = 50;
 const int num_of_frames = 100;
 const float max_quadr_Range = 10.0;
-
-void redraw_Screen(SDL_Renderer *renderer, int *screen, int x_size, int y_size);
 
 float start_coord(int screen_coord, float zoom, float delta, int half_size)
 {
@@ -48,11 +48,12 @@ int calculate_pixel_color(int x, int y, float x_center, float y_center, float zo
     return repeats * !(r < max_quadr_Range);  
 }
 
-int main()
+float base_mondelbrot(int mode)
 {
     float x_center = 0;
     float y_center = 0;
     float zoom = 200.0;
+
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         printf("Error SDL: %s\n", SDL_GetError());
@@ -73,12 +74,15 @@ int main()
         SDL_RENDERER_ACCELERATED      
     );
 
-    #ifdef MEASURE_TIME
+
     float *times = (float *)calloc(sizeof(float), num_of_frames);
     clock_t start = clock();
-    #endif
 
     int screen[x_size * y_size] = {0};
+
+    float AVG_N = num_of_frames / 2;
+    float AVG_T = 0;
+
 
     for(int i = 0; i < num_of_frames; i++)
     {
@@ -90,38 +94,24 @@ int main()
             }
         }
 
-        #ifdef MEASURE_TIME
-        clock_t current = clock();
-        times[i] = (float)(current - start) / CLOCKS_PER_SEC;
-        #endif
-
-        #ifndef MEASURE_TIME
-        printf("current frame %d\n", i);
-        redraw_Screen(renderer, (int *)&screen, x_size, y_size);
-        #endif
-    }
-
-    #ifdef MEASURE_TIME
-    save_result(times, num_of_frames, "./results/base_results.txt");
-    #endif
-}
-
-
-void redraw_Screen(SDL_Renderer *renderer, int *screen, int x_size, int y_size)
-{
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-
-    for (size_t y = 0; y < y_size; y++)
-    {
-        for (size_t x = 0; x < x_size; x++)
+        if (mode != 1)
         {
-            if (!screen[x + y * x_size])
-                SDL_RenderDrawPoint(renderer, x, y);
+            clock_t current = clock();
+            times[i] = (float)(current - start) / CLOCKS_PER_SEC;
+            AVG_T += times[i]/(float)num_of_frames;
+        }
+
+        if(mode == 1)
+        {
+            printf("current frame %d\n", i);
+            redraw_Screen(renderer, (int *)&screen, x_size, y_size);
         }
     }
-    
-    SDL_RenderPresent(renderer);
+    if (mode != 1)
+    {
+        save_result(times, num_of_frames, "./results/base_results.txt", AVG_N, AVG_T);
+    }
+
+    return -1;
 }
         

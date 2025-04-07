@@ -1,1 +1,0 @@
-g++ mondelbrot_inctr.cpp testsystem.cpp -msse2 -msse4.1 -mavx -march=native -o0 -lSDL2 -o mondelbrot_inctr
