@@ -6,11 +6,13 @@
 
 
 const int repeats_to_set = 50;
-const int num_of_frames = 1000;
+const int num_of_frames = 100;
 const double max_quadr_Range[4] = {100.0, 100.0, 100.0, 100.0};
 
-const int x_size = 800;
-const int y_size = 600;
+const int x_size = 1600;
+const int y_size = 800;
+
+void redraw_Screen(SDL_Renderer *renderer, int *screen, int x_size, int y_size);
 
 void convert_arr(double dst[4], const int src[4])
 {
@@ -71,7 +73,7 @@ void set_start_coord(double *start_coord, int *coord, int coord_center, double z
     double tmp[4] = {};
     convert_arr(tmp, coord);
     cpy_arr(start_coord, tmp);
-    set_arr(start_coord, (double)coord_center);
+    set_arr(tmp, (double)coord_center);
     sub_arr(start_coord, start_coord, tmp);
     double zoom_arr[4]={zoom, zoom, zoom, zoom};
     div_arr(start_coord, start_coord, zoom_arr);
@@ -101,8 +103,7 @@ void calculate_new_x_coord(double *result, double *x_coord, double *y_coord, dou
 
 void calculate_new_y_coord(double *result, double *x_coord, double *y_coord, double *y_coord_start)
 {
-    cpy_arr(result, x_coord);
-    mul_arr(result, result, y_coord);
+    mul_arr(result, x_coord, y_coord);
     double tmp[4] = {};
     set_arr(tmp, 2);
     mul_arr(result, result, tmp);
@@ -112,7 +113,11 @@ void calculate_new_y_coord(double *result, double *x_coord, double *y_coord, dou
 
 int contains_1_i(int *a)
 {
-    return (a[0]) | (a[1]) | (a[2]) | (a[3]);
+    if ((a[0] || a[1] || a[2] || a[3]) == 0)
+    {
+        return 0;
+    }
+    return 1;
 }
 
 void neg_arr_i(int result[4], const int a[4])
@@ -135,12 +140,25 @@ void set_diff_arr_i(int result[4], const int v0, const int v1, const int v2, con
 
 void set_arr_i(int dst[4], const int value)
 {
-    for(int i = 4; i < 4; i++) {dst[i] = value;}
+    for(int i = 0; i < 4; i++) {dst[i] = value;}
 }
 
 void cpy_arr_i(int dst[4], const int src[4])
 {
     for(int i = 0; i < 4; i++) {dst[i] = src[i];}
+}
+
+void arr_cmp_i(int result[4], const int *bigger, const int *smaller)
+{
+    for (int i = 0; i < 4; i++) 
+    {
+        if (bigger[i] > smaller[i])
+        {
+            result[i] = 1;
+        }
+        else
+            result[i] = 0;
+    }
 }
 
 int calculate_pixel_repeats(int *x, int *y, int x_center, int y_center, double zoom, int repeats[4]) 
@@ -162,8 +180,10 @@ int calculate_pixel_repeats(int *x, int *y, int x_center, int y_center, double z
 
 
     int is_inside[4] = {1, 1, 1, 1};
+    int tmp[4] = {1, 1, 1, 1};
+    int max = 0;
 
-    while (contains_1_i(is_inside))
+    while (contains_1_i(is_inside) && max < repeats_to_set)
     {
         calculate_new_x_coord(x_new, x_coord, y_coord, x_coord_start);
         calculate_new_y_coord(y_new, x_coord, y_coord, y_coord_start);
@@ -172,7 +192,8 @@ int calculate_pixel_repeats(int *x, int *y, int x_center, int y_center, double z
 
         calculate_r(x_coord, y_coord, r_arr);
         arr_cmp(is_inside, max_quadr_Range, r_arr);
-        add_arr_i(repeats, repeats, is_inside);
+        add_arr_i(repeats, repeats, is_inside);       
+        max ++;
     }
 
     neg_arr_i(is_inside, is_inside);
@@ -182,9 +203,9 @@ int calculate_pixel_repeats(int *x, int *y, int x_center, int y_center, double z
 
 int main()
 {
-    int x_center = 0.0;
-    int y_center = 0.0;
-    double zoom = 20.0;
+    int x_center = x_size/2;
+    int y_center = y_size/2;
+    double zoom = 400.0;
     int repeats[4] = {};
     int x[4] = {};
     int y[4] = {};
@@ -208,22 +229,25 @@ int main()
         SDL_RENDERER_ACCELERATED      
     );
 
-    int screen[x_size][y_size] = {};
+    int screen[x_size * y_size] = {};
+    
+    int ttt[4] = {1, 1, 1, 1};
 
     for(int i = 0; i < num_of_frames; i++)
     {
-        for (int x_start = 0; x_start < x_size; x_start++)
+        for (int y_start = 0; y_start < y_size; y_start++)
         {
-            set_arr_i(x, x_start);
-            for (int y_start = 0; y_start < y_size; y_start+=4)
+            set_arr_i(y, y_start);
+            for (int x_start = 0; x_start < x_size; x_start+=4)
             {
-                set_diff_arr_i(y, y_start, y_start+1, y_start+2, y_start+3);
+                set_diff_arr_i(x, x_start, x_start+1, x_start+2, x_start+3);
                 calculate_pixel_repeats(x, y, x_center, y_center, zoom, repeats);
 
-                cpy_arr_i((int *)&screen[x_start][y_start], repeats);
+                cpy_arr_i(&screen[x_start + y_start * x_size], repeats);
             }
         }
-
+        
+        printf("drawing %d", i);
         redraw_Screen(renderer, (int *)&screen, x_size, y_size);
     }  
 }
@@ -231,13 +255,13 @@ int main()
 
 void redraw_Screen(SDL_Renderer *renderer, int *screen, int x_size, int y_size)
 {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
     SDL_RenderClear(renderer);
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
 
-    for (size_t x = 0; x < x_size; x++)
+    for (size_t y = 0; y < y_size; y++)
     {
-        for (size_t y = 0; y < y_size; y++)
+        for (size_t x = 0; x < x_size; x++)
         {
             if (!screen[x + y * x_size])
                 SDL_RenderDrawPoint(renderer, x, y);

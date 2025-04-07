@@ -1,0 +1,1 @@
+g++ mondelbrot_arr.cpp -o2 -o mondelbrot_arr -lSDL2 && ./mondelbrot_arr
