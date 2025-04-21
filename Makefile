@@ -3,7 +3,7 @@ CXXFLAGS := -O3 -march=native -Iinclude
 LDFLAGS := -lSDL2
 SIMD_FLAGS := -msse2 -msse4.1 -mavx
 
-SRCS := src/mondelbrot_Base.cpp src/mondelbrot_inctr.cpp src/testsystem.cpp
+SRCS := src/mondelbrot_Base.cpp src/mondelbrot_inctr.cpp src/testsystem.cpp src/drawing_funkctions.cpp
 OBJS := $(SRCS:.cpp=.o)
 
 all: mandelbrot
