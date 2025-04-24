@@ -87,7 +87,7 @@ float test_mondelbrot(NEED_DRAWING mode, int32_t num_frames, void (*calculate_sc
             redraw_Screen(renderer, screen, x_size, y_size);
         }
 
-        printf("frame %d is completed\n", i);
+        //printf("frame %d is completed\n", i);
     }  
 
     return (clock() - start) / (float)CLOCKS_PER_SEC;
@@ -96,7 +96,7 @@ float test_mondelbrot(NEED_DRAWING mode, int32_t num_frames, void (*calculate_sc
 int main()
 {
     float base, intr;
-    int32_t numOfMeasurements = 10;
+    int32_t numOfMeasurements = 1;
 
     for(int i = 0; i < numOfMeasurements; i++)
     {
