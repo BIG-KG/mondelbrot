@@ -95,9 +95,17 @@ float test_mondelbrot(NEED_DRAWING mode, int32_t num_frames, void (*calculate_sc
 
 int main()
 {
-    float base = test_mondelbrot(NO_DRAW_MODE, 1000, calculate_screen_BASE);
-    float intr = test_mondelbrot(NO_DRAW_MODE, 1000, calculate_screen_SIMD);
+    float base, intr;
+    int32_t numOfMeasurements = 10;
 
+    for(int i = 0; i < numOfMeasurements; i++)
+    {
+        base += test_mondelbrot(NO_DRAW_MODE, 1000, calculate_screen_BASE);
+        intr += test_mondelbrot(NO_DRAW_MODE, 1000, calculate_screen_SIMD);
+    }
+
+    base /= numOfMeasurements;
+    intr /= numOfMeasurements;
 
     printf("better at %f\n", base/intr);
 }

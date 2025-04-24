@@ -11,4 +11,4 @@ $a = \frac{n \sum\limits_{i=1}^n x_i y_i - \left( \sum\limits_{i=1}^n x_i \right
 
 Получаем $a_{base} = 0.0289$, $a_{SIMD} = 0.0107$. Итоговое ускорение $S = \frac{a_{base}} {a_{SIMD}} = 2.7$
 
-![Сравнение SIMD и обычной версии на графике](https://github.com/BIG-KG/mondelbrot/blob/main/compare.png)
+![Сравнение SIMD и обычной версии на графике](https://github.com/BIG-KG/mondelbrot/blob/main/compare.png)``
